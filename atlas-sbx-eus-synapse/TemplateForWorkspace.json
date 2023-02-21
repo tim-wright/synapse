@@ -64,8 +64,7 @@
 											"type": "Expression"
 										}
 									}
-								},
-								"linkedServiceParameters": {}
+								}
 							},
 							"staging": {},
 							"compute": {
@@ -91,8 +90,7 @@
 				"lastPublishTime": "2023-02-06T16:15:30Z"
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/JsonArrayToParquet')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/JsonArrayToParquet')]"
 			]
 		},
 		{
@@ -102,7 +100,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "ForEach1",
+						"name": "Ingest one Table",
 						"type": "ForEach",
 						"dependsOn": [],
 						"userProperties": [],
@@ -123,7 +121,12 @@
 											"type": "PipelineReference"
 										},
 										"waitOnCompletion": true,
-										"parameters": {}
+										"parameters": {
+											"dirName": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
 									}
 								}
 							]
@@ -398,7 +401,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "164e985c-e9e0-4943-980c-083fca349b26"
+						"spark.autotune.trackingId": "caa32ae0-fe4e-4f65-b8e0-cd006c6a615c"
 					}
 				},
 				"metadata": {
@@ -423,8 +426,7 @@
 						"sparkVersion": "3.2",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
+						"memory": 28
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -460,7 +462,7 @@
 							"tables = ['customers', 'orders', 'status']"
 						],
 						"outputs": [],
-						"execution_count": 29
+						"execution_count": 1
 					},
 					{
 						"cell_type": "code",
@@ -487,11 +489,13 @@
 							"  `timestamp` STRING,\r\n",
 							"  `zip_code` STRING,\r\n",
 							"  `src_file` STRING\"\"\",\r\n",
+							"\r\n",
 							"  'orders':\"\"\"\r\n",
 							"  `customer_id` STRING,\r\n",
 							"  `order_timestamp` STRING,\r\n",
 							"  `notifications` STRING,\r\n",
 							"  `order_id` STRING\"\"\", \r\n",
+							"  \r\n",
 							"    'status': \"\"\"\r\n",
 							"  `order_id` STRING,\r\n",
 							"  `status_timestamp` STRING,\r\n",
@@ -500,7 +504,7 @@
 							"  }"
 						],
 						"outputs": [],
-						"execution_count": 32
+						"execution_count": null
 					},
 					{
 						"cell_type": "code",
