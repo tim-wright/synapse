@@ -1,0 +1,652 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "atlas-sbx-eus-synapse"
+		},
+		"atlas-sbx-eus-synapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'atlas-sbx-eus-synapse-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:atlas-sbx-eus-synapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"Synapse KeyVault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://atlas-sbx-eus-kv-synapse.vault.azure.net/"
+		},
+		"atlas-sbx-eus-synapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dyr95qkwxck17p4kjwxspndh.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Incremental_Ingest_json_to_bronze_parquet')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Move Json Array to Parquet in lake",
+						"description": "a change",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "JsonArrayToParquet",
+								"type": "DataFlowReference",
+								"parameters": {
+									"blobParquetDirName": {
+										"value": "'@{pipeline().parameters.dirName}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"JsonBlobSource": {
+										"blobDirName": "@pipeline().parameters.dirName"
+									},
+									"ParquetSink": {
+										"blobDirName": {
+											"value": "@pipeline().parameters.dirName",
+											"type": "Expression"
+										}
+									}
+								},
+								"linkedServiceParameters": {}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine",
+							"runConcurrently": true
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"dirName": {
+						"type": "string",
+						"defaultValue": "customers"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-02-06T16:15:30Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/dataflows/JsonArrayToParquet')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Ingest_All_Tables')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.tableNames",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Execute Pipeline1",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Incremental_Ingest_json_to_bronze_parquet",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"tableNames": {
+						"type": "array",
+						"defaultValue": [
+							"customers",
+							"orders",
+							"status"
+						]
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-02-06T16:15:35Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Incremental_Ingest_json_to_bronze_parquet')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonDir')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "atlas-sbx-eus-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"blobDirName": {
+						"type": "string",
+						"defaultValue": "customers"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@concat('/databricks-dataset/',dataset().blobDirName, '/stream_json')",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/atlas-sbx-eus-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ParquetDirOutput')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "atlas-sbx-eus-synapse-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"blobDirName": {
+						"type": "string",
+						"defaultValue": "customers"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@concat('/parquet/', dataset().blobDirName)",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/atlas-sbx-eus-synapse-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Synapse KeyVault')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('Synapse KeyVault_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/atlas-sbx-eus-synapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('atlas-sbx-eus-synapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/atlas-sbx-eus-synapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('atlas-sbx-eus-synapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/JsonArrayToParquet')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "JsonDir",
+								"type": "DatasetReference"
+							},
+							"name": "JsonBlobSource",
+							"description": "Import data from JsonDir changed"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ParquetDirOutput",
+								"type": "DatasetReference"
+							},
+							"name": "ParquetSink"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"parameters{",
+						"     blobParquetDirName as string",
+						"}",
+						"source(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     rowUrlColumn: 'src_file',",
+						"     documentForm: 'arrayOfDocuments',",
+						"     backslashEscape: true,",
+						"     mode: 'read') ~> JsonBlobSource",
+						"JsonBlobSource sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     umask: 0222,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> ParquetSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/JsonDir')]",
+				"[concat(variables('workspaceId'), '/datasets/ParquetDirOutput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- -- CREATE MASTER KEY ENCRYPTION BY PASSWORD = '192hpas8@G!*&3g8GS*&G!W*82z1211';  \n\n-- -- -- CREATE DATABASE demo_db;\n-- -- -- CREATE SCHEMA [customer_orders];\n-- -- CREATE DATABASE SCOPED CREDENTIAL [demo_db_creds]   \n-- -- WITH IDENTITY = 'Managed Identity' ; \n\n-- -- DROP EXTERNAL TABLE customer_orders.customers;\n-- DROP EXTERNAL DATA SOURCE CUSTOMER_ORDERS_DATA;\n\n-- CREATE EXTERNAL DATA SOURCE CUSTOMER_ORDERS_DATA\n-- WITH\n-- (    LOCATION         = 'https://synapsestorageacctpq3d.blob.core.windows.net/poc-synapse-fs/bronze',\n--     CREDENTIAL = [demo_db_creds] );\n-- GO\n-- -- DROP EXTERNAL FILE FORMAT snappy_parquet;\n-- -- CREATE EXTERNAL FILE FORMAT snappy_parquet\n-- -- WITH (  \n-- --     FORMAT_TYPE = PARQUET , \n-- --     DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'   \n-- --     );  \n\n-- -- DROP EXTERNAL TABLE demo_db.customer_orders.customers;\n\n-- CREATE EXTERNAL TABLE demo_db.customer_orders.customers \n--     (   customer_id INT,\n--         name varchar(100),\n--     address VARCHAR(100),\n--     city varchar(20),\n--     state varchar(10),\n--     zip_code varchar(20),\n--     operation varchar(20),\n--     [timestamp] int\n--     )  \n--     WITH (\n--         LOCATION = '/customers/',  \n--         DATA_SOURCE = CUSTOMER_ORDERS_DATA,\n--         FILE_FORMAT = snappy_parquet\n--     )\n-- ; \n-- GO\n\nselect count(*) from demo_db.customer_orders.customers;\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CreatingSparkTables')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "transform",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "164e985c-e9e0-4943-980c-083fca349b26"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/9133035f-f4eb-49a7-a65e-262e299d7301/resourceGroups/atlas-sbx-eus-rg-synapse/providers/Microsoft.Synapse/workspaces/atlas-sbx-eus-synapse/bigDataPools/transform",
+						"name": "transform",
+						"type": "Spark",
+						"endpoint": "https://atlas-sbx-eus-synapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/transform",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.2",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Create External Tables Sitting over external Parquet\r\n",
+							"Note that these Spark tables have some metadata pointing to the data. If you drop the table, it will drop the metadata but will not touch the data. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"tables = ['customers', 'orders', 'status']"
+						],
+						"outputs": [],
+						"execution_count": 29
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"schemas =  {'customers': \"\"\"\r\n",
+							"  `address` STRING,\r\n",
+							"  `city` STRING,\r\n",
+							"  `customer_id` STRING,\r\n",
+							"  `email` STRING,\r\n",
+							"  `name` STRING,\r\n",
+							"  `operation` STRING,\r\n",
+							"  `state` STRING,\r\n",
+							"  `timestamp` STRING,\r\n",
+							"  `zip_code` STRING,\r\n",
+							"  `src_file` STRING\"\"\",\r\n",
+							"  'orders':\"\"\"\r\n",
+							"  `customer_id` STRING,\r\n",
+							"  `order_timestamp` STRING,\r\n",
+							"  `notifications` STRING,\r\n",
+							"  `order_id` STRING\"\"\", \r\n",
+							"    'status': \"\"\"\r\n",
+							"  `order_id` STRING,\r\n",
+							"  `status_timestamp` STRING,\r\n",
+							"  `order_status` STRING\r\n",
+							"  \"\"\"\r\n",
+							"  }"
+						],
+						"outputs": [],
+						"execution_count": 32
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql.functions import *\r\n",
+							"for table in tables:\r\n",
+							"    loc = f\"abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet\"\r\n",
+							"    spark.sql(f\"CREATE EXTERNAL TABLE IF NOT EXISTS demo_db.ext_{table} ({schemas[table]}) USING PARQUET LOCATION'{loc}'\")"
+						],
+						"outputs": [],
+						"execution_count": 33
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### See how many records are in each table"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT 'status' as entity, COUNT(*) as cnt from demo_db.ext_status\r\n",
+							"UNION\r\n",
+							"SELECT 'orders' as entity, COUNT(*) as cnt from demo_db.ext_orders\r\n",
+							"UNION\r\n",
+							"SELECT 'customers' as entity, COUNT(*) as cnt from demo_db.ext_customers"
+						],
+						"outputs": [],
+						"execution_count": 37
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Create Managed Spark Tables "
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "python"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"for table in tables:\r\n",
+							"    df = spark.read.load('abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet', format='parquet')\r\n",
+							"    df.write.mode(\"overwrite\").saveAsTable(\"demoo_db.{table}\")\r\n",
+							"    "
+						],
+						"outputs": [],
+						"execution_count": 14
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/transform')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 10
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 3,
+					"minNodeCount": 3
+				},
+				"nodeCount": 0,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.2",
+				"libraryRequirements": {
+					"content": "appnope==0.1.0\nbeautifulsoup4==4.6.3\n",
+					"filename": "requirements.txt",
+					"time": "2023-02-14T17:09:25.1313929Z"
+				},
+				"isComputeIsolationEnabled": false,
+				"sparkConfigProperties": {
+					"configurationType": "File",
+					"filename": "config.txt",
+					"content": "spark.shuffle.spill                true\n",
+					"time": "2023-02-14T17:09:25.1313929Z"
+				},
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dw1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus"
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "atlas-sbx-eus-synapse"
+		},
+		"atlas-sbx-eus-synapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:atlas-sbx-eus-synapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"Synapse KeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://atlas-sbx-eus-kv-synapse.vault.azure.net/"
+		},
+		"atlas-sbx-eus-synapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://dyr95qkwxck17p4kjwxspndh.dfs.core.windows.net"
+		}
+	}
+}
