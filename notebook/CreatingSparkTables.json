@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "29eafb97-f6ce-4148-af01-6599c986de92"
+				"spark.autotune.trackingId": "caa32ae0-fe4e-4f65-b8e0-cd006c6a615c"
 			}
 		},
 		"metadata": {
@@ -78,7 +78,7 @@
 				"source": [
 					"tables = ['customers', 'orders', 'status']"
 				],
-				"execution_count": 29
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
@@ -105,11 +105,13 @@
 					"  `timestamp` STRING,\r\n",
 					"  `zip_code` STRING,\r\n",
 					"  `src_file` STRING\"\"\",\r\n",
+					"\r\n",
 					"  'orders':\"\"\"\r\n",
 					"  `customer_id` STRING,\r\n",
 					"  `order_timestamp` STRING,\r\n",
 					"  `notifications` STRING,\r\n",
 					"  `order_id` STRING\"\"\", \r\n",
+					"  \r\n",
 					"    'status': \"\"\"\r\n",
 					"  `order_id` STRING,\r\n",
 					"  `status_timestamp` STRING,\r\n",
@@ -117,7 +119,7 @@
 					"  \"\"\"\r\n",
 					"  }"
 				],
-				"execution_count": 32
+				"execution_count": null
 			},
 			{
 				"cell_type": "code",
