@@ -1,0 +1,11 @@
+{
+	"name": "Synapse KeyVault",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://atlas-sbx-eus-kv-synapse.vault.azure.net/"
+		},
+		"annotations": []
+	}
+}
