@@ -1,0 +1,49 @@
+{
+	"name": "Ingest_All_Tables",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.tableNames",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitOnCompletion": true,
+								"parameters": {
+									"dirName": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"tableNames": {
+				"type": "array",
+				"defaultValue": [
+					"customers",
+					"orders",
+					"status"
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-02-06T16:15:35Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
