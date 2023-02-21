@@ -1,0 +1,53 @@
+{
+	"name": "Incremental_Ingest_json_to_bronze_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "Move Json Array to Parquet in lake",
+				"description": "a change",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "JsonArrayToParquet",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"JsonBlobSource": {
+								"blobDirName": "@pipeline().parameters.dirName"
+							},
+							"ParquetSink": {
+								"blobDirName": {
+									"value": "@pipeline().parameters.dirName",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"runConcurrently": true
+				}
+			}
+		],
+		"parameters": {
+			"dirName": {
+				"type": "string",
+				"defaultValue": "customers"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-02-06T16:15:30Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
