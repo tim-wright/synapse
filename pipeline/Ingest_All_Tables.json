@@ -23,7 +23,13 @@
 									"referenceName": "Incremental_Ingest_json_to_bronze_parquet",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"dirName": {
+										"value": "@item()",
+										"type": "Expression"
+									}
+								}
 							}
 						}
 					]
