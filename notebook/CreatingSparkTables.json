@@ -4,7 +4,7 @@
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"bigDataPool": {
-			"referenceName": "synspmdwtran",
+			"referenceName": "transform",
 			"type": "BigDataPoolReference"
 		},
 		"sessionProperties": {
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d06f3e4d-2b83-46a5-9002-57998781e9cc"
+				"spark.autotune.trackingId": "29eafb97-f6ce-4148-af01-6599c986de92"
 			}
 		},
 		"metadata": {
@@ -31,12 +31,19 @@
 				"name": "python"
 			},
 			"a365ComputeOptions": {
-				"id": "/subscriptions/523d9a4d-de27-4c53-93b0-d4508eca5796/resourceGroups/rg-de-mdw-dev-eus/providers/Microsoft.Synapse/workspaces/synw-mdw-dev-eus-cum/bigDataPools/synspmdwtran",
-				"name": "synspmdwtran",
+				"id": "/subscriptions/9133035f-f4eb-49a7-a65e-262e299d7301/resourceGroups/atlas-sbx-eus-rg-synapse/providers/Microsoft.Synapse/workspaces/atlas-sbx-eus-synapse/bigDataPools/transform",
+				"name": "transform",
+				"type": "Spark",
+				"endpoint": "https://atlas-sbx-eus-synapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/transform",
 				"auth": {
 					"type": "AAD",
 					"authResource": "https://dev.azuresynapse.net"
-				}
+				},
+				"sparkVersion": "3.2",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
