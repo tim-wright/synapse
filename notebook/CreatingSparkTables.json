@@ -1,0 +1,208 @@
+{
+	"name": "CreatingSparkTables",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "synspmdwtran",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "d06f3e4d-2b83-46a5-9002-57998781e9cc"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/523d9a4d-de27-4c53-93b0-d4508eca5796/resourceGroups/rg-de-mdw-dev-eus/providers/Microsoft.Synapse/workspaces/synw-mdw-dev-eus-cum/bigDataPools/synspmdwtran",
+				"name": "synspmdwtran",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				}
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Create External Tables Sitting over external Parquet\r\n",
+					"Note that these Spark tables have some metadata pointing to the data. If you drop the table, it will drop the metadata but will not touch the data. "
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"tables = ['customers', 'orders', 'status']"
+				],
+				"execution_count": 29
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"schemas =  {'customers': \"\"\"\r\n",
+					"  `address` STRING,\r\n",
+					"  `city` STRING,\r\n",
+					"  `customer_id` STRING,\r\n",
+					"  `email` STRING,\r\n",
+					"  `name` STRING,\r\n",
+					"  `operation` STRING,\r\n",
+					"  `state` STRING,\r\n",
+					"  `timestamp` STRING,\r\n",
+					"  `zip_code` STRING,\r\n",
+					"  `src_file` STRING\"\"\",\r\n",
+					"  'orders':\"\"\"\r\n",
+					"  `customer_id` STRING,\r\n",
+					"  `order_timestamp` STRING,\r\n",
+					"  `notifications` STRING,\r\n",
+					"  `order_id` STRING\"\"\", \r\n",
+					"    'status': \"\"\"\r\n",
+					"  `order_id` STRING,\r\n",
+					"  `status_timestamp` STRING,\r\n",
+					"  `order_status` STRING\r\n",
+					"  \"\"\"\r\n",
+					"  }"
+				],
+				"execution_count": 32
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql.functions import *\r\n",
+					"for table in tables:\r\n",
+					"    loc = f\"abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet\"\r\n",
+					"    spark.sql(f\"CREATE EXTERNAL TABLE IF NOT EXISTS demo_db.ext_{table} ({schemas[table]}) USING PARQUET LOCATION'{loc}'\")"
+				],
+				"execution_count": 33
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### See how many records are in each table"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\r\n",
+					"SELECT 'status' as entity, COUNT(*) as cnt from demo_db.ext_status\r\n",
+					"UNION\r\n",
+					"SELECT 'orders' as entity, COUNT(*) as cnt from demo_db.ext_orders\r\n",
+					"UNION\r\n",
+					"SELECT 'customers' as entity, COUNT(*) as cnt from demo_db.ext_customers"
+				],
+				"execution_count": 37
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Create Managed Spark Tables "
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"for table in tables:\r\n",
+					"    df = spark.read.load('abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet', format='parquet')\r\n",
+					"    df.write.mode(\"overwrite\").saveAsTable(\"demoo_db.{table}\")\r\n",
+					"    "
+				],
+				"execution_count": 14
+			}
+		]
+	}
+}

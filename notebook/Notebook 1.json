@@ -1,0 +1,248 @@
+{
+	"name": "Notebook 1",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "6ac761ee-4271-48c0-b85c-fc8ab6f63eea"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"# Create External Tables Sitting over external Parquet\\r\\n\",\r\n",
+					"\t\t\t\t\t\"Note that these Spark tables have some metadata pointing to the data. If you drop the table, it will drop the metadata but will not touch the data. \"\r\n",
+					"\t\t\t\t]\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"code\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"jupyter\": {\r\n",
+					"\t\t\t\t\t\t\"source_hidden\": false,\r\n",
+					"\t\t\t\t\t\t\"outputs_hidden\": false\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t}\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"tables = ['customers', 'orders', 'status']\"\r\n",
+					"\t\t\t\t],\r\n",
+					"\t\t\t\t\"execution_count\": 29\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"code\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"jupyter\": {\r\n",
+					"\t\t\t\t\t\t\"source_hidden\": false,\r\n",
+					"\t\t\t\t\t\t\"outputs_hidden\": false\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t}\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"schemas =  {'customers': \\\"\\\"\\\"\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `address` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `city` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `customer_id` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `email` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `name` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `operation` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `state` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `timestamp` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `zip_code` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `src_file` STRING\\\"\\\"\\\",\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  \\r\\n\",\r\n",
+					"\t\t\t\t\t\"  'orders':\\\"\\\"\\\"\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `customer_id` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `order_timestamp` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `notifications` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `order_id` STRING\\\"\\\"\\\", \\r\\n\",\r\n",
+					"\t\t\t\t\t\"  \\r\\n\",\r\n",
+					"\t\t\t\t\t\"  'status': \\\"\\\"\\\"\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `order_id` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `status_timestamp` STRING,\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  `order_status` STRING\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  \\\"\\\"\\\"\\r\\n\",\r\n",
+					"\t\t\t\t\t\"  }\"\r\n",
+					"\t\t\t\t],\r\n",
+					"\t\t\t\t\"execution_count\": 32\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"code\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"jupyter\": {\r\n",
+					"\t\t\t\t\t\t\"source_hidden\": false,\r\n",
+					"\t\t\t\t\t\t\"outputs_hidden\": false\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t}\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"from pyspark.sql.functions import *\\r\\n\",\r\n",
+					"\t\t\t\t\t\"for table in tables:\\r\\n\",\r\n",
+					"\t\t\t\t\t\"    loc = f\\\"abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet\\\"\\r\\n\",\r\n",
+					"\t\t\t\t\t\"    spark.sql(f\\\"CREATE EXTERNAL TABLE IF NOT EXISTS demo_db.ext_{table} ({schemas[table]}) USING PARQUET LOCATION'{loc}'\\\")\"\r\n",
+					"\t\t\t\t],\r\n",
+					"\t\t\t\t\"execution_count\": 33\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"markdown\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t}\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"### See how many records are in each table\"\r\n",
+					"\t\t\t\t]\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"code\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"jupyter\": {\r\n",
+					"\t\t\t\t\t\t\"source_hidden\": false,\r\n",
+					"\t\t\t\t\t\t\"outputs_hidden\": false\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"microsoft\": {\r\n",
+					"\t\t\t\t\t\t\"language\": \"sparksql\"\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"collapsed\": false\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"%%sql\\r\\n\",\r\n",
+					"\t\t\t\t\t\"SELECT 'status' as entity, COUNT(*) as cnt from demo_db.ext_status\\r\\n\",\r\n",
+					"\t\t\t\t\t\"UNION\\r\\n\",\r\n",
+					"\t\t\t\t\t\"SELECT 'orders' as entity, COUNT(*) as cnt from demo_db.ext_orders\\r\\n\",\r\n",
+					"\t\t\t\t\t\"UNION\\r\\n\",\r\n",
+					"\t\t\t\t\t\"SELECT 'customers' as entity, COUNT(*) as cnt from demo_db.ext_customers\"\r\n",
+					"\t\t\t\t],\r\n",
+					"\t\t\t\t\"execution_count\": 37\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"markdown\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"nteract\": {\r\n",
+					"\t\t\t\t\t\t\"transient\": {\r\n",
+					"\t\t\t\t\t\t\t\"deleting\": false\r\n",
+					"\t\t\t\t\t\t}\r\n",
+					"\t\t\t\t\t}\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"# Create Managed Spark Tables \"\r\n",
+					"\t\t\t\t]\r\n",
+					"\t\t\t},\r\n",
+					"\t\t\t{\r\n",
+					"\t\t\t\t\"cell_type\": \"code\",\r\n",
+					"\t\t\t\t\"metadata\": {\r\n",
+					"\t\t\t\t\t\"microsoft\": {\r\n",
+					"\t\t\t\t\t\t\"language\": \"python\"\r\n",
+					"\t\t\t\t\t},\r\n",
+					"\t\t\t\t\t\"collapsed\": false\r\n",
+					"\t\t\t\t},\r\n",
+					"\t\t\t\t\"source\": [\r\n",
+					"\t\t\t\t\t\"%%pyspark\\r\\n\",\r\n",
+					"\t\t\t\t\t\"for table in tables:\\r\\n\",\r\n",
+					"\t\t\t\t\t\"    df = spark.read.load('abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet', format='parquet')\\r\\n\",\r\n",
+					"\t\t\t\t\t\"    df.write.mode(\\\"overwrite\\\").saveAsTable(\\\"demoo_db.{table}\\\")\\r\\n\",\r\n",
+					"\t\t\t\t\t\"    \"\r\n",
+					"\t\t\t\t],\r\n",
+					"\t\t\t\t\"execution_count\": 14\r\n",
+					"\t\t\t}\r\n",
+					"\t\t]\r\n",
+					"\t}\r\n",
+					"}"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Create External Tables Sitting over external Parquet\r\n",
+					"Note that these Spark tables have some metadata pointing to the data. If you drop the table, it will drop the metadata but will not touch the data. "
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"tables = ['customers', 'orders', 'status']"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}

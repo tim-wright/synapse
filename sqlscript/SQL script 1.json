@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "-- -- CREATE MASTER KEY ENCRYPTION BY PASSWORD = '192hpas8@G!*&3g8GS*&G!W*82z1211';  \n\n-- -- -- CREATE DATABASE demo_db;\n-- -- -- CREATE SCHEMA [customer_orders];\n-- -- CREATE DATABASE SCOPED CREDENTIAL [demo_db_creds]   \n-- -- WITH IDENTITY = 'Managed Identity' ; \n\n-- -- DROP EXTERNAL TABLE customer_orders.customers;\n-- DROP EXTERNAL DATA SOURCE CUSTOMER_ORDERS_DATA;\n\n-- CREATE EXTERNAL DATA SOURCE CUSTOMER_ORDERS_DATA\n-- WITH\n-- (    LOCATION         = 'https://synapsestorageacctpq3d.blob.core.windows.net/poc-synapse-fs/bronze',\n--     CREDENTIAL = [demo_db_creds] );\n-- GO\n-- -- DROP EXTERNAL FILE FORMAT snappy_parquet;\n-- -- CREATE EXTERNAL FILE FORMAT snappy_parquet\n-- -- WITH (  \n-- --     FORMAT_TYPE = PARQUET , \n-- --     DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'   \n-- --     );  \n\n-- -- DROP EXTERNAL TABLE demo_db.customer_orders.customers;\n\n-- CREATE EXTERNAL TABLE demo_db.customer_orders.customers \n--     (   customer_id INT,\n--         name varchar(100),\n--     address VARCHAR(100),\n--     city varchar(20),\n--     state varchar(10),\n--     zip_code varchar(20),\n--     operation varchar(20),\n--     [timestamp] int\n--     )  \n--     WITH (\n--         LOCATION = '/customers/',  \n--         DATA_SOURCE = CUSTOMER_ORDERS_DATA,\n--         FILE_FORMAT = snappy_parquet\n--     )\n-- ; \n-- GO\n\nselect count(*) from demo_db.customer_orders.customers;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
