@@ -19,6 +19,12 @@
 					"dataflow": {
 						"referenceName": "JsonArrayToParquet",
 						"type": "DataFlowReference",
+						"parameters": {
+							"blobParquetDirName": {
+								"value": "'@{pipeline().parameters.dirName}'",
+								"type": "Expression"
+							}
+						},
 						"datasetParameters": {
 							"JsonBlobSource": {
 								"blobDirName": "@pipeline().parameters.dirName"
