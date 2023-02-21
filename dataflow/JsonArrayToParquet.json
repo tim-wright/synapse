@@ -1,0 +1,48 @@
+{
+	"name": "JsonArrayToParquet",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "JsonDir",
+						"type": "DatasetReference"
+					},
+					"name": "JsonBlobSource",
+					"description": "Import data from JsonDir changed"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ParquetDirOutput",
+						"type": "DatasetReference"
+					},
+					"name": "ParquetSink"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"parameters{",
+				"     blobParquetDirName as string",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'src_file',",
+				"     documentForm: 'arrayOfDocuments',",
+				"     backslashEscape: true,",
+				"     mode: 'read') ~> JsonBlobSource",
+				"JsonBlobSource sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0222,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> ParquetSink"
+			]
+		}
+	}
+}
