@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Ingest one Table",
+				"name": "Ingest a Single Table",
 				"type": "ForEach",
 				"dependsOn": [],
 				"userProperties": [],
