@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "caa32ae0-fe4e-4f65-b8e0-cd006c6a615c"
+				"spark.autotune.trackingId": "9840bc15-762e-4392-9b8a-1868f83cb4d4"
 			}
 		},
 		"metadata": {
@@ -137,7 +137,7 @@
 				"source": [
 					"from pyspark.sql.functions import *\r\n",
 					"for table in tables:\r\n",
-					"    loc = f\"abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet\"\r\n",
+					"    loc = f\"abfss://raw@dyr95qkwxck17p4kjwxspndh.dfs.core.windows.net/parquet/{table}/*.parquet\"\r\n",
 					"    spark.sql(f\"CREATE EXTERNAL TABLE IF NOT EXISTS demo_db.ext_{table} ({schemas[table]}) USING PARQUET LOCATION'{loc}'\")"
 				],
 				"execution_count": 33
@@ -206,8 +206,8 @@
 				"source": [
 					"%%pyspark\r\n",
 					"for table in tables:\r\n",
-					"    df = spark.read.load('abfss://raw@stsyndemdwdeveuscum.dfs.core.windows.net/parquet/{table}/*.parquet', format='parquet')\r\n",
-					"    df.write.mode(\"overwrite\").saveAsTable(\"demoo_db.{table}\")\r\n",
+					"    df = spark.read.load('abfss://raw@dyr95qkwxck17p4kjwxspndh.dfs.core.windows.net/parquet/{table}/*.parquet', format='parquet')\r\n",
+					"    df.write.mode(\"overwrite\").saveAsTable(f\"demo_db.{table}\")\r\n",
 					"    "
 				],
 				"execution_count": 14
